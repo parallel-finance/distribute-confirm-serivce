@@ -1,0 +1,8 @@
+{
+  "name": "distribute-confirmation-serivce",
+  "version": "1.0.0",
+  "description": "A confirmation service for distribute bot",
+  "main": "index.js",
+  "author": "jaden.zhang",
+  "license": "MIT"
+}
