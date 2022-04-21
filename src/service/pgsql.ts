@@ -1,40 +1,39 @@
-/// schedule job for committed distribution txes in postgres.
-import Mom from "moment";
+import Mom from 'moment';
 
-import { diffTime, sleep } from "../utils";
-import { lastProcessedData } from "./subql";
-import { acalaHashExist, moonbeamHashExist } from "../subql";
-import { getAppLogger, logger } from "logger";
-import { RewardDistributionTask } from "common-service";
-import { Connection, In } from "typeorm";
+import { diffTime, sleep } from '../utils';
+import { lastProcessedData } from './subql';
+import { acalaHashExist, moonbeamHashExist } from '../subql';
+import { getAppLogger, logger } from 'logger';
+import { RewardDistributionTask } from 'common-service';
+import { Connection, In } from 'typeorm';
 
-const log = getAppLogger("service-pgsql");
+const log = getAppLogger('service-pgsql');
 
 const HOUR = 1000 * 60 * 60;
 const EXPIRE_HOURS = Number(process.env.EXPIRE_HOURS);
-const ACALA_CROWDLOAN_ID = "2000-6-13";
-const MOONBEAM_CROWDLOAN_ID = "2004-6-13";
+const ACALA_CROWDLOAN_ID = '2000-6-13';
+const MOONBEAM_CROWDLOAN_ID = '2004-6-13';
 
 async function isExpired(updateAt: Date): Promise<boolean> {
   const { lastProcessedTimestamp } = await lastProcessedData();
 
   const lastTime = Mom.unix(lastProcessedTimestamp / 1000);
-  const diff = diffTime(Mom(updateAt), lastTime, "hours");
+  const diff = diffTime(Mom(updateAt), lastTime, 'hours');
   return diff > EXPIRE_HOURS;
 }
 
-type Stat = "Pending" | "Verified" | "Committed" | "Succeed" | "Failed";
+type Stat = 'Pending' | 'Verified' | 'Committed' | 'Succeed' | 'Failed';
 
 async function findUncheck(
-  limit: number = 100
+  limit = 100
 ): Promise<RewardDistributionTask[]> {
   return await RewardDistributionTask.find({
     where: {
-      status: "Committed",
+      status: 'Committed',
     },
     take: limit,
     order: {
-      updateAt: "ASC",
+      updateAt: 'ASC',
     },
   });
 }
@@ -59,8 +58,8 @@ async function handleTxStatus(
 export async function uncheckTxScheduler(conn: Connection) {
   log.info(`uncheck distribution scheduler start!`);
   while (true) {
-    let successPool: string[] = [];
-    let expirePool: string[] = [];
+    const successPool: string[] = [];
+    const expirePool: string[] = [];
     const txes = await findUncheck(100);
     if (txes.length === 0) {
       await sleep(HOUR);
@@ -80,7 +79,7 @@ export async function uncheckTxScheduler(conn: Connection) {
     let re = await conn
       .createQueryBuilder()
       .update(RewardDistributionTask)
-      .set({ status: "Succeed" })
+      .set({ status: 'Succeed' })
       .where({ txHash: In(successPool) })
       .execute();
     if (re.affected < successPool.length) {
@@ -95,7 +94,7 @@ export async function uncheckTxScheduler(conn: Connection) {
     re = await conn
       .createQueryBuilder()
       .update(RewardDistributionTask)
-      .set({ status: "Failed" })
+      .set({ status: 'Failed' })
       .where({ txHash: In(expirePool) })
       .execute();
     if (re.affected !== expirePool.length) {

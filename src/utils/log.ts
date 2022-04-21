@@ -8,7 +8,7 @@ console.info('node env in log library: ', process.env.NODE_ENV)
 const { combine, colorize, timestamp, label, printf, json, splat } = format
 
 const printFormat = printf(msg => `${msg.timestamp} ${msg.label} ${msg.level}: ${msg.message}`)
-const logFormat = (labelStr?: string, isJson: boolean = false) => {
+const logFormat = (labelStr?: string, isJson = false) => {
     const common = combine(
         timestamp({
             format: 'YYYY-MM-DD HH:mm:ss'   // make sure localtime
@@ -20,7 +20,7 @@ const logFormat = (labelStr?: string, isJson: boolean = false) => {
     return combine(common, isJson ? json() : printFormat)
 }
 
-function newRotateFile(filename: string, level: string = 'info', isJson: boolean = true) {
+function newRotateFile(filename: string, level = 'info', isJson = true) {
     return new DailyRotateFile({
         level,
         filename: `logs/${filename}-%DATE%.log`,
@@ -42,11 +42,11 @@ function consoleLog(label: string, consoleLevel: string) {
     })
 }
 
-export function getAppLogger(label: string = '', opt?: { isJson: boolean, consoleLevel: string }) {
+export function getAppLogger(label = '', opt?: { isJson: boolean, consoleLevel: string }) {
     const isJson = opt?.isJson ?? true
     const consoleLevel = opt?.consoleLevel ?? 'debug'
     const format = logFormat(label, isJson)
-    let trans: any[] = [newRotateFile('error', 'error'), newRotateFile('app')]
+    const trans: any[] = [newRotateFile('error', 'error'), newRotateFile('app')]
     if (NODE_ENV === 'dev') {
         trans.push(consoleLog(label, consoleLevel))
     }
@@ -63,7 +63,7 @@ export function getAppLogger(label: string = '', opt?: { isJson: boolean, consol
 
 export function accessLogger() {
 
-    let trans: any[] = [newRotateFile('access', 'http')]
+    const trans: any[] = [newRotateFile('access', 'http')]
     if (NODE_ENV === 'dev') {
         trans.push(consoleLog('access', 'debug'))
     }

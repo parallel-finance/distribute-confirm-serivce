@@ -1,7 +1,7 @@
-import { gql, request } from "graphql-request";
-import { getAppLogger } from "logger";
+import { gql, request } from 'graphql-request';
+import { getAppLogger } from 'logger';
 
-const log = getAppLogger("service-subql");
+const log = getAppLogger('service-subql');
 
 type SubqlMeta = {
   lastProcessedHeight;

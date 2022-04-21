@@ -1,7 +1,7 @@
 import { Moment } from 'moment'
 export * from './unexpect'
 
-type TimeUnit = "hours" | "days" | "seconds" | "minutes"
+type TimeUnit = 'hours' | 'days' | 'seconds' | 'minutes'
 
 export async function sleep(sec: number) {
     return new Promise((resolve, _reject) => {
