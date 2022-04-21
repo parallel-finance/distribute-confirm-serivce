@@ -4,5 +4,19 @@
   "description": "A confirmation service for distribute bot",
   "main": "index.js",
   "author": "jaden.zhang",
-  "license": "MIT"
+  "license": "MIT",
+  "scripts": {
+    "start": "node --unhandled-rejections=strict dist/index.js",
+    "build": "tsc --build --force"
+  },
+  "devDependencies": {
+    "@goldstack/utils-typescript-references": "^0.1.5",
+    "@yarnpkg/sdks": "^2.6.0-rc.2",
+    "typescript": "^4.5.4"
+  },
+  "dependencies": {
+    "dotenv": "^12.0.3",
+    "prompt-promise": "^1.0.3",
+    "winston": "^3.3.3"
+  }
 }
