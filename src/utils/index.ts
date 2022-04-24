@@ -35,7 +35,7 @@ export const unexpectedListener = (): void => {
         })
     })
 
-    signalTraps.map((type: any) => {
+    signalTraps.map((type) => {
         process.once(type, async (err) => {
             try {
                 log.error(`process on signal event: ${type}: %o`, err)
