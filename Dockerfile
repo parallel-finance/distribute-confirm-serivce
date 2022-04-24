@@ -6,4 +6,4 @@ COPY . /distribute-confirm-service
 
 RUN yarn install && yarn build
 
-ENTRYPOINT [ "yarn", "start"]
+ENTRYPOINT [ "yarn", "start:node"]
