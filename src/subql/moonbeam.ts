@@ -1,8 +1,7 @@
 import { gql, request } from 'graphql-request';
 import config from '../config';
 
-const { MOONBEAM_SUBQL_ENDPOINT } = config
-console.log(url)
+const { MOONBEAM_SUBQL_ENDPOINT } = config();
 
 export async function moonbeamHashExist(hash: string): Promise<boolean> {
     const { distributedTransactions: { nodes } } = await request(

@@ -1,0 +1,233 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Deploy a service on AWS Fargate, hosted in a public subnet, and accessible via a public load balancer.
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: staging
+    Description: The name of the environment to add this service to
+  ServiceName:
+    Type: String
+    Default: distribute-bot
+    Description: A name for the service
+  VpcID:
+    Type: String
+    Description: The vpc which the fargate service runs on
+  ImageUrl:
+    Type: String
+    Default: nginx
+    Description: The url of a docker image that contains the application process that
+      will handle the traffic for this service
+  NodeEnv:
+    Type: String
+    Default: "local"
+    Description: One of envs used
+  ExpireHours:
+    Type: String
+    Default: "6"
+    Description: One of envs used
+  AcalaSubqlEndpoint:
+    Type: String
+    Default: ""
+    Description: One of envs which provides acala subql endpoint
+  MoonbeamSubqlEndpoint:
+    Type: String
+    Default: ""
+    Description: One of envs which provides moonbeam subql endpoint
+
+Resources:
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub ${EnvironmentName}-${ServiceName}
+      ClusterSettings:
+        - Name: containerInsights
+          Value: enabled
+
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub ${EnvironmentName}-${ServiceName}
+
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Ref 'ServiceName'
+      Cpu: 256
+      Memory: 512
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn: arn:aws:iam::165550724216:role/ecsTaskExecutionRole
+      TaskRoleArn: arn:aws:iam::165550724216:role/ecsTaskExecutionRole
+      ContainerDefinitions:
+        - Name: !Ref ServiceName
+          Cpu: 256
+          Memory: 512
+          Image: !Ref 'ImageUrl'
+          Environment:
+            - Name: NODE_ENV
+              Value: !Ref NodeEnv
+            - Name: EXPIRE_HOURS
+              Value: !Ref ExpireHours
+            - Name: ACALA_SUBQL_ENDPOINT
+              Value: !Ref AcalaSubqlEndpoint
+            - Name: MOONBEAM_SUBQL_ENDPOINT
+              Value: !Ref MoonbeamSubqlEndpoint
+          PortMappings:
+            - ContainerPort: 80
+          LogConfiguration:
+            LogDriver: 'awslogs'
+            Options:
+              awslogs-group: !Ref LogGroup
+              awslogs-region: !Ref 'AWS::Region'
+              awslogs-stream-prefix: !Ref ServiceName
+
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub ${EnvironmentName}-${ServiceName}
+      Subnets:
+        - subnet-0e4fa54e693777164
+        - subnet-073acbb2d651dc9f4
+        - subnet-0370f9627bffc4dcd
+      SecurityGroups:
+        - sg-03c624a94f94c0c98
+        - sg-0da4054487117aac4
+        - sg-0f8b7056c58620199
+        - sg-04528b83acf974e7e
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-${ServiceName}
+
+  LoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref DefaultTargetGroup
+
+  DefaultTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub ${EnvironmentName}-${ServiceName}
+      VpcId: !Ref VpcID
+      Port: 80
+      Protocol: HTTP
+
+  Service:
+    Type: AWS::ECS::Service
+    DependsOn: ListenerRule
+    Properties:
+      ServiceName: !Ref ServiceName
+      Cluster: !Ref ECSCluster
+      TaskDefinition: !Ref TaskDefinition
+      LaunchType: FARGATE
+      DesiredCount: 1
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 75
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - sg-03c624a94f94c0c98
+            - sg-0da4054487117aac4
+            - sg-0f8b7056c58620199
+            - sg-04528b83acf974e7e
+          Subnets:
+            - subnet-0e4fa54e693777164
+            - subnet-073acbb2d651dc9f4
+            - subnet-0370f9627bffc4dcd
+      LoadBalancers:
+        - ContainerName: !Ref ServiceName
+          ContainerPort: 80
+          TargetGroupArn: !Ref TargetGroup
+
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      VpcId: !Ref VpcID
+      HealthCheckIntervalSeconds: 6
+      HealthCheckPath: /
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      TargetType: ip
+      Name: !Ref ServiceName
+      Port: 80
+      Protocol: HTTP
+      UnhealthyThresholdCount: 2
+
+  ListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      ListenerArn: !Ref LoadBalancerListener
+      Priority: 1
+      Conditions:
+        - Field: path-pattern
+          Values:
+            - "*"
+      Actions:
+        - TargetGroupArn: !Ref TargetGroup
+          Type: forward
+
+  LowCpuUsageAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName:
+        Fn::Join:
+          - '-'
+          - - low-cpu
+            - !Ref 'EnvironmentName'
+            - !Ref 'ServiceName'
+      AlarmDescription:
+        Fn::Join:
+          - ' '
+          - - "Low CPU utilization for service"
+            - !Ref 'ServiceName'
+            - "in environment"
+            - !Ref 'EnvironmentName'
+      MetricName: CPUUtilization
+      Namespace: AWS/ECS
+      Dimensions:
+        - Name: ServiceName
+          Value: !Ref 'ServiceName'
+        - Name: ClusterName
+          Value: !Sub ${EnvironmentName}-${ServiceName}
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 20
+      ComparisonOperator: LessThanOrEqualToThreshold
+
+  HighCpuUsageAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName:
+        Fn::Join:
+          - '-'
+          - - high-cpu
+            - !Ref 'EnvironmentName'
+            - !Ref 'ServiceName'
+      AlarmDescription:
+        Fn::Join:
+          - ' '
+          - - "High CPU utilization for service"
+            - !Ref 'ServiceName'
+            - "in environment"
+            - !Ref 'EnvironmentName'
+      MetricName: CPUUtilization
+      Namespace: AWS/ECS
+      Dimensions:
+        - Name: ServiceName
+          Value: !Ref 'ServiceName'
+        - Name: ClusterName
+          Value: !Sub ${EnvironmentName}-${ServiceName}
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 70
+      ComparisonOperator: GreaterThanOrEqualToThreshold

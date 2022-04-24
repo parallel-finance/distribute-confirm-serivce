@@ -1,0 +1,50 @@
+[
+  {
+    "ParameterKey": "EnvironmentName",
+    "ParameterValue": "local"
+  },
+  {
+    "ParameterKey": "ServiceName",
+    "ParameterValue": "distribute-bot"
+  },
+  {
+    "ParameterKey": "VpcID",
+    "ParameterValue": "vpc-0bfc170f3fb6bb000"
+  },
+  {
+    "ParameterKey": "AcalaEndpoint",
+    "ParameterValue": "???"
+  },
+  {
+    "ParameterKey": "AcalaDistributeClaimAccounts",
+    "ParameterValue": "???"
+  },
+  {
+    "ParameterKey": "AcalaProxyAddress",
+    "ParameterValue": "???"
+  },
+  {
+    "ParameterKey": "AcalaMainAddress",
+    "ParameterValue": "???"
+  },
+  {
+    "ParameterKey": "MoonbeamEndpoint",
+    "ParameterValue": "???"
+  },
+  {
+    "ParameterKey": "MoonbeamClaimerAddress",
+    "ParameterValue": "???"
+  },
+  {
+    "ParameterKey": "MoonbeamMainAddress",
+    "ParameterValue": "???"
+  },
+  {
+    "ParameterKey": "SigningServiceEndpoint",
+    "ParameterValue": "???"
+  },
+  {
+    "ParameterKey": "DatabaseUrl",
+    "ParameterValue": "???"
+  }
+]

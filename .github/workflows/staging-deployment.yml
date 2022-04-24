@@ -1,0 +1,76 @@
+name: Acala Staging Deployment
+
+on: workflow_dispatch
+
+env:
+  AWS_REGION: us-east-2
+  ECR_REPOSITORY: distribute-bot-staging
+  ENVIRONMENT_NAME: staging
+  SERVICE_NAME: acala-distribute-bot
+  VPC_ID: vpc-0bfc170f3fb6bb000
+  ACALA_ENDPOINT: wss://acala-parachain-wss.parallel.fi
+  ACALA_PROXY_ADDRESS: r2FvWStyEYquydzbJxNvjhyhdngn227mF4sKdpTw4gaDbKW
+  ACALA_MAIN_ADDRESS: okx42cFPQyREbsr4ZhdZeFwzRikwCDHBmajM3k9MpW4Tpg8
+  ACALA_DISTRIBUTE_CLAIM_ACCOUNTS: pyvB8eK7SCH9y6UzqDFiP3phqcqmtAm9FEtjpwdmMKsEN3e#rLFgAVT9Xbs9VgLZVMpJSeSGGHQGn753wAtb3qzKjd8fpSf#sxbmow358TeopgWYNj6iyChRaFLPRTw4UW1uHzNoTfob11d#tvg6hrQqdW7jngCLRe2xQKmsaYFa4KW8Ru8omxFMn3i9zDH
+  SIGNING_SERVICE_ENDPOINT: https://staging-signing-service.parallel.fi
+  MOONBEAM_ENDPOINT:
+  MOONBEAM_CLAIMER_ADDRESS:
+  MOONBEAM_MAIN_ADDRESS:
+
+jobs:
+  depoly:
+    name: Deployment staging(Acala)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        uses: borales/actions-yarn@v2.3.0
+        with:
+          cmd: install # will run `yarn install` command
+
+      - name: Build js
+        uses: borales/actions-yarn@v2.3.0
+        with:
+          cmd: build # will run `yarn build` command
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+      - name: Deploy ecs to staging env
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: acala-distribute-bot-staging
+          template: aws/service-fargate.yml
+          no-fail-on-empty-changeset: "1"
+          parameter-overrides: >-
+            EnvironmentName=${{ env.ENVIRONMENT_NAME }},
+            ServiceName=${{ env.SERVICE_NAME }},
+            VpcID=${{ env.VPC_ID }},
+            ImageUrl=${{ steps.build-image.outputs.image }},
+            AcalaEndpoint=${{ env.ACALA_ENDPOINT }},
+            AcalaDistributeClaimAccounts=${{ env.ACALA_DISTRIBUTE_CLAIM_ACCOUNTS }},
+            AcalaProxyAddress=${{env.ACALA_PROXY_ADDRESS }},
+            AcalaMainAddress=${{ env.ACALA_MAIN_ADDRESS }},
+            SigningServiceEndpoint=${{ env.SIGNING_SERVICE_ENDPOINT }},
+            DatabaseUrl=${{ secrets.DATABASE_URL_STAGING }},
+            MoonbeamEndpoint=${{ env.MOONBEAM_ENDPOINT }},
+            MoonbeamClaimerAddress=${{ env.MOONBEAM_CLAIMER_ADDRESS }},
+            MoonbeamMainAddress=${{ env.MOONBEAM_MAIN_ADDRESS }}

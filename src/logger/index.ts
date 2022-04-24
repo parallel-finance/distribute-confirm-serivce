@@ -1,6 +1,7 @@
 import config from '../config';
 import { createLogger, format, transports } from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
+import TransportStream from 'winston-transport';
 
 const { combine, colorize, timestamp, label, printf, json, splat } = format;
 
@@ -33,48 +34,48 @@ const newRotateFile = (filename: string, level = 'info', isJson = true) => {
         symlinkName: `${filename}.log`,
         maxSize: '1m',
         maxFiles: 20,
-    })
+    }) as TransportStream;
 }
 
 const consoleLog = (label: string, consoleLevel: string) => {
     return new transports.Console({
         level: consoleLevel,
         format: combine(colorize(), logFormat(label, false))
-    })
+    }) as TransportStream;
 }
 
 export const getAppLogger = (label = '', opt?: { isJson: boolean, consoleLevel: string }) => {
     const isJson = opt?.isJson ?? true
     const consoleLevel = opt?.consoleLevel ?? 'debug'
     const format = logFormat(label, isJson)
-    const transports: unknown[] = [newRotateFile('error', 'error'), newRotateFile('app')]
+    const trans: TransportStream[] = [newRotateFile('error', 'error'), newRotateFile('app')]
     if (NODE_ENV === 'dev') {
-      transports.push(consoleLog(label, consoleLevel))
+      trans.push(consoleLog(label, consoleLevel))
     }
 
     return createLogger({
         format,
-        transports,
+        transports: trans,
         exceptionHandlers: [
             newRotateFile('exception', 'error', false)
         ],
         exitOnError: false
-    })
+    });
 }
 
 export const accessLogger = () => {
-    const transports = [newRotateFile('access', 'http')]
+    const trans: TransportStream[] = [newRotateFile('access', 'http')]
     if (NODE_ENV === 'dev') {
-      transports.push(consoleLog('access', 'debug'))
+      trans.push(consoleLog('access', 'debug'))
     }
     return createLogger({
         format: logFormat('access', false),
-        transports,
+        transports: trans,
         exceptionHandlers: [
             newRotateFile('access-exception', 'error')
         ],
         exitOnError: false
-    })
+    });
 }
 
 export const logger = createLogger({

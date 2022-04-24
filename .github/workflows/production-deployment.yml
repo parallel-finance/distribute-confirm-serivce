@@ -1,0 +1,67 @@
+name: Production Deployment
+
+on: workflow_dispatch
+
+env:
+  AWS_REGION: us-east-2
+  ECR_REPOSITORY: distribute-confirm-service-prod
+  ENVIRONMENT_NAME: prod
+  SERVICE_NAME: distribute-confirm-service
+  VPC_ID: vpc-07d9fe6fd5f57305e
+  NODE_ENV: staging
+  EXPIRE_HOURS: 6,
+  ACALA_SUBQL_ENDPOINT: 'wss://acala-parachain-wss.parallel.fi',
+  MOONBEAM_SUBQL_ENDPOINT: ???
+
+jobs:
+  Deploy:
+    name: Deployment production
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        uses: borales/actions-yarn@v2.3.0
+        with:
+          cmd: install # will run `yarn install` command
+
+      - name: Build js
+        uses: borales/actions-yarn@v2.3.0
+        with:
+          cmd: build # will run `yarn build` command
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+      - name: Deploy ecs to prod env
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: distribute-confirm-service-prod
+          template: aws/service-fargate.yml
+          no-fail-on-empty-changeset: "1"
+          parameter-overrides: >-
+            EnvironmentName=${{ env.ENVIRONMENT_NAME }},
+            ServiceName=${{ env.SERVICE_NAME }},
+            VpcID=${{ env.VPC_ID }},
+            ImageUrl=${{ steps.build-image.outputs.image }},
+            NodeEnv=${{ env.NODE_ENV }},
+            ExpireHours=${{ env.EXPIRE_HOURS }},
+            AcalaSubqlEndpoint=${{ env.ACALA_SUBQL_ENDPOINT }},
+            MoonbeamSubqlEndpoint=${{ env.MOONBEAM_SUBQL_ENDPOINT }}

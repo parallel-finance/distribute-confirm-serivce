@@ -17,8 +17,8 @@ async function run() {
 run()
   .then(() => process.exit(0))
   .catch((err) => {
-    logger.debug(err);
+    log.debug(err);
     process.exit(1)
   });
 
-  process.on('unhandledRejection', err => logger.error(err))
+  process.on('unhandledRejection', err => log.error(err))
