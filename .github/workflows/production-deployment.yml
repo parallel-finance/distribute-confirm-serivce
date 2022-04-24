@@ -9,7 +9,7 @@ env:
   SERVICE_NAME: distribute-confirm-service
   VPC_ID: vpc-07d9fe6fd5f57305e
   NODE_ENV: prod
-  EXPIRE_HOURS: 6,
+  EXPIRE_HOURS: 6
   ACALA_SUBQL_ENDPOINT: https://api.subquery.network/sq/parallel-finance/acala-distribution-subql
   MOONBEAM_SUBQL_ENDPOINT: https://api.subquery.network/sq/parallel-finance/moonbeam-distribution-subql
 

@@ -4,12 +4,12 @@ on: workflow_dispatch
 
 env:
   AWS_REGION: us-east-2
-  ECR_REPOSITORY: distribute-bot-staging
+  ECR_REPOSITORY: distribute-confirm-service-staging
   ENVIRONMENT_NAME: staging
-  SERVICE_NAME: acala-distribute-bot
+  SERVICE_NAME: distribute-confirm-service
   VPC_ID: vpc-0bfc170f3fb6bb000
   NODE_ENV: prod
-  EXPIRE_HOURS: 6,
+  EXPIRE_HOURS: 6
   ACALA_SUBQL_ENDPOINT: https://api.subquery.network/sq/parallel-finance/acala-distribution-subql__cGFyY
   MOONBEAM_SUBQL_ENDPOINT: https://api.subquery.network/sq/parallel-finance/moonbeam-distribution-subql__cGFyY
 

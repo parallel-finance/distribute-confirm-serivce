@@ -12,6 +12,10 @@
     "ParameterValue": "vpc-0bfc170f3fb6bb000"
   },
   {
+    "ParameterKey": "ImageUrl",
+    "ParameterValue": "???"
+  },
+  {
     "ParameterKey": "NodeEnv",
     "ParameterValue": "dev"
   },
