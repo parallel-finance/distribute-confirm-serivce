@@ -15,7 +15,7 @@ env:
 
 jobs:
   depoly:
-    name: Deployment staging(Acala)
+    name: Deployment staging
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

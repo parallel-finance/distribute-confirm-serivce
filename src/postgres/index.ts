@@ -1,4 +1,4 @@
-import Moment from 'Moment';
+import Moment from 'moment';
 import { Connection, In } from 'typeorm';
 import config from '../config';
 import { diffTime, sleep } from '../utils';
