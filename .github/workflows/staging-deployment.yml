@@ -1,4 +1,4 @@
-name: Acala Staging Deployment
+name: Staging Deployment
 
 on: workflow_dispatch
 
@@ -53,7 +53,7 @@ jobs:
       - name: Deploy ecs to staging env
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          name: acala-distribute-bot-staging
+          name: distribute-confirm-service-staging
           template: aws/service-fargate.yml
           no-fail-on-empty-changeset: "1"
           parameter-overrides: >-
