@@ -6,7 +6,7 @@ env:
   AWS_REGION: us-east-2
   ECR_REPOSITORY: distribute-confirm-service-staging
   ENVIRONMENT_NAME: staging
-  SERVICE_NAME: distribute-confirm-service
+  SERVICE_NAME: distribute-confirm
   VPC_ID: vpc-0bfc170f3fb6bb000
   NODE_ENV: prod
   EXPIRE_HOURS: 6

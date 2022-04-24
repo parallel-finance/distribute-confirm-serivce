@@ -48,10 +48,7 @@ export const getAppLogger = (label = '', opt?: { isJson: boolean, consoleLevel: 
     const isJson = opt?.isJson ?? true
     const consoleLevel = opt?.consoleLevel ?? 'debug'
     const format = logFormat(label, isJson)
-    const trans: TransportStream[] = [newRotateFile('error', 'error'), newRotateFile('app')]
-    if (NODE_ENV === 'dev') {
-      trans.push(consoleLog(label, consoleLevel))
-    }
+    const trans: TransportStream[] = [newRotateFile('error', 'error'), newRotateFile('app'), consoleLog(label, consoleLevel)];
 
     return createLogger({
         format,
@@ -64,10 +61,7 @@ export const getAppLogger = (label = '', opt?: { isJson: boolean, consoleLevel: 
 }
 
 export const accessLogger = () => {
-    const trans: TransportStream[] = [newRotateFile('access', 'http')]
-    if (NODE_ENV === 'dev') {
-      trans.push(consoleLog('access', 'debug'))
-    }
+    const trans: TransportStream[] = [newRotateFile('access', 'http'), consoleLog('access', 'debug')]
     return createLogger({
         format: logFormat('access', false),
         transports: trans,

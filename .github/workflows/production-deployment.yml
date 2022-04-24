@@ -6,7 +6,7 @@ env:
   AWS_REGION: us-east-2
   ECR_REPOSITORY: distribute-confirm-service-prod
   ENVIRONMENT_NAME: prod
-  SERVICE_NAME: distribute-confirm-service
+  SERVICE_NAME: distribute-confirm
   VPC_ID: vpc-07d9fe6fd5f57305e
   NODE_ENV: prod
   EXPIRE_HOURS: 6
