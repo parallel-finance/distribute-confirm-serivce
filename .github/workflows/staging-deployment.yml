@@ -8,14 +8,10 @@ env:
   ENVIRONMENT_NAME: staging
   SERVICE_NAME: acala-distribute-bot
   VPC_ID: vpc-0bfc170f3fb6bb000
-  ACALA_ENDPOINT: wss://acala-parachain-wss.parallel.fi
-  ACALA_PROXY_ADDRESS: r2FvWStyEYquydzbJxNvjhyhdngn227mF4sKdpTw4gaDbKW
-  ACALA_MAIN_ADDRESS: okx42cFPQyREbsr4ZhdZeFwzRikwCDHBmajM3k9MpW4Tpg8
-  ACALA_DISTRIBUTE_CLAIM_ACCOUNTS: pyvB8eK7SCH9y6UzqDFiP3phqcqmtAm9FEtjpwdmMKsEN3e#rLFgAVT9Xbs9VgLZVMpJSeSGGHQGn753wAtb3qzKjd8fpSf#sxbmow358TeopgWYNj6iyChRaFLPRTw4UW1uHzNoTfob11d#tvg6hrQqdW7jngCLRe2xQKmsaYFa4KW8Ru8omxFMn3i9zDH
-  SIGNING_SERVICE_ENDPOINT: https://staging-signing-service.parallel.fi
-  MOONBEAM_ENDPOINT:
-  MOONBEAM_CLAIMER_ADDRESS:
-  MOONBEAM_MAIN_ADDRESS:
+  NODE_ENV: prod
+  EXPIRE_HOURS: 6,
+  ACALA_SUBQL_ENDPOINT: https://api.subquery.network/sq/parallel-finance/acala-distribution-subql__cGFyY
+  MOONBEAM_SUBQL_ENDPOINT: https://api.subquery.network/sq/parallel-finance/moonbeam-distribution-subql__cGFyY
 
 jobs:
   depoly:
@@ -65,12 +61,8 @@ jobs:
             ServiceName=${{ env.SERVICE_NAME }},
             VpcID=${{ env.VPC_ID }},
             ImageUrl=${{ steps.build-image.outputs.image }},
-            AcalaEndpoint=${{ env.ACALA_ENDPOINT }},
-            AcalaDistributeClaimAccounts=${{ env.ACALA_DISTRIBUTE_CLAIM_ACCOUNTS }},
-            AcalaProxyAddress=${{env.ACALA_PROXY_ADDRESS }},
-            AcalaMainAddress=${{ env.ACALA_MAIN_ADDRESS }},
-            SigningServiceEndpoint=${{ env.SIGNING_SERVICE_ENDPOINT }},
-            DatabaseUrl=${{ secrets.DATABASE_URL_STAGING }},
-            MoonbeamEndpoint=${{ env.MOONBEAM_ENDPOINT }},
-            MoonbeamClaimerAddress=${{ env.MOONBEAM_CLAIMER_ADDRESS }},
-            MoonbeamMainAddress=${{ env.MOONBEAM_MAIN_ADDRESS }}
+            NodeEnv=${{ env.NODE_ENV }},
+            ExpireHours=${{ env.EXPIRE_HOURS }},
+            AcalaSubqlEndpoint=${{ env.ACALA_SUBQL_ENDPOINT }},
+            MoonbeamSubqlEndpoint=${{ env.MOONBEAM_SUBQL_ENDPOINT }},
+            DatabaseUrl=${{ secrets.DATABASE_URL_STAGING }}

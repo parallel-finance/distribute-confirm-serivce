@@ -33,6 +33,10 @@ Parameters:
     Type: String
     Default: ""
     Description: One of envs which provides moonbeam subql endpoint
+  DatabaseUrl:
+    Type: String
+    Default: ""
+    Description: One of envs which stores rewards distribute task records
 
 Resources:
   ECSCluster:
@@ -73,6 +77,8 @@ Resources:
               Value: !Ref AcalaSubqlEndpoint
             - Name: MOONBEAM_SUBQL_ENDPOINT
               Value: !Ref MoonbeamSubqlEndpoint
+            - Name: DATABASE_URL
+              Value: !Ref DatabaseUrl
           PortMappings:
             - ContainerPort: 80
           LogConfiguration:

@@ -12,35 +12,19 @@
     "ParameterValue": "vpc-0bfc170f3fb6bb000"
   },
   {
-    "ParameterKey": "AcalaEndpoint",
+    "ParameterKey": "NodeEnv",
+    "ParameterValue": "dev"
+  },
+  {
+    "ParameterKey": "ExpireHours",
+    "ParameterValue": "6"
+  },
+  {
+    "ParameterKey": "AcalaSubqlEndpoint",
     "ParameterValue": "???"
   },
   {
-    "ParameterKey": "AcalaDistributeClaimAccounts",
-    "ParameterValue": "???"
-  },
-  {
-    "ParameterKey": "AcalaProxyAddress",
-    "ParameterValue": "???"
-  },
-  {
-    "ParameterKey": "AcalaMainAddress",
-    "ParameterValue": "???"
-  },
-  {
-    "ParameterKey": "MoonbeamEndpoint",
-    "ParameterValue": "???"
-  },
-  {
-    "ParameterKey": "MoonbeamClaimerAddress",
-    "ParameterValue": "???"
-  },
-  {
-    "ParameterKey": "MoonbeamMainAddress",
-    "ParameterValue": "???"
-  },
-  {
-    "ParameterKey": "SigningServiceEndpoint",
+    "ParameterKey": "MoonbeamSubqlEndpoint",
     "ParameterValue": "???"
   },
   {
