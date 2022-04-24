@@ -1,10 +1,11 @@
 import { gql, request } from 'graphql-request'
+import config from '../config';
 
-const url = process.env.ACALA_SUBQL_ENDPOINT
+const { ACALA_SUBQL_ENDPOINT } = config();
 
 export async function acalaHashExist(hash: string): Promise<boolean> {
     const { distributionTxes: { nodes } } = await request(
-        url,
+        ACALA_SUBQL_ENDPOINT,
         gql`
         query {
             distributionTxes(filter: {

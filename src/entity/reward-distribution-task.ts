@@ -1,5 +1,12 @@
 import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
+export enum RewardDistributionTaskStatus {
+  Pending = 'Pending',
+  Committed = 'Committed',
+  Failed = 'Failed',
+  Succeed = 'Succeed'
+}
+
 @Entity({ name: 'reward_distribution_task' })
 export class RewardDistributionTask extends BaseEntity {
   @PrimaryGeneratedColumn()
@@ -21,7 +28,7 @@ export class RewardDistributionTask extends BaseEntity {
   amount: string;
 
   @Column({ type: 'varchar' })
-  status: 'Pending' | 'Verified' | 'Committed' | 'Succeed' | 'Failed';
+  status: RewardDistributionTaskStatus;
 
   @CreateDateColumn({name: 'create_at'})
   createAt: Date;

@@ -1,21 +1,19 @@
-import Moment from 'moment';
-import config from '../config';
-
-import { diffTime, sleep } from '../utils';
-import { lastProcessedData } from './subql';
-import { acalaHashExist, moonbeamHashExist } from '../subql';
-import { getAppLogger, logger } from 'logger';
-import { RewardDistributionTask } from 'common-service';
+import Moment from 'Moment';
 import { Connection, In } from 'typeorm';
+import config from '../config';
+import { diffTime, sleep } from '../utils';
+import { lastProcessedData, acalaHashExist, moonbeamHashExist } from '../subql';
+import { getAppLogger, logger } from '../logger';
+import { RewardDistributionTask, RewardDistributionTaskStatus } from '../entity';
 
-const log = getAppLogger('service-pgsql');
+const log = getAppLogger('Postgres');
 
 const HOUR = 1000 * 60 * 60;
-const EXPIRE_HOURS = Number(config().EXPIRE_HOURS);
+const { EXPIRE_HOURS } = config();
 const ACALA_CROWDLOAN_ID = '2000-6-13';
 const MOONBEAM_CROWDLOAN_ID = '2004-6-13';
 
-async function isExpired(updateAt: Date): Promise<boolean> {
+const isExpired = async (updateAt: Date): Promise<boolean> => {
   const { lastProcessedTimestamp } = await lastProcessedData();
 
   const lastTime = Moment.unix(lastProcessedTimestamp / 1000);
@@ -23,14 +21,10 @@ async function isExpired(updateAt: Date): Promise<boolean> {
   return diff > EXPIRE_HOURS;
 }
 
-type Stat = 'Pending' | 'Verified' | 'Committed' | 'Succeed' | 'Failed';
-
-async function findUncheck(
-  limit = 100
-): Promise<RewardDistributionTask[]> {
+const findUncheck = async (limit = 100): Promise<RewardDistributionTask[]> => {
   return await RewardDistributionTask.find({
     where: {
-      status: 'Committed',
+      status: RewardDistributionTaskStatus.Committed,
     },
     take: limit,
     order: {
@@ -39,12 +33,12 @@ async function findUncheck(
   });
 }
 
-async function handleTxStatus(
+const handleTxStatus = async (
   tx: RewardDistributionTask,
   successPool: string[],
   expirePool: string[],
   isExist: (hash: string) => Promise<boolean>
-) {
+) => {
   const existed = await isExist(tx.txHash);
   if (existed) {
     successPool.push(tx.txHash);
@@ -56,8 +50,9 @@ async function handleTxStatus(
   }
 }
 
-export async function uncheckTxScheduler(conn: Connection) {
-  log.info(`uncheck distribution scheduler start!`);
+export const uncheckTxScheduler = async (connection: Connection) => {
+  log.info(`Uncheck distribution scheduler start!`);
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     const successPool: string[] = [];
     const expirePool: string[] = [];
@@ -67,44 +62,44 @@ export async function uncheckTxScheduler(conn: Connection) {
       continue;
     }
     for (const tx of txes) {
-      log.debug(`handle tx crowdloan[${tx.crowdloanId}] hash[$${tx.txHash}]`)
+      log.debug(`Handle tx crowdloan[${tx.crowdloanId}] hash[$${tx.txHash}]`)
       if (tx.crowdloanId === ACALA_CROWDLOAN_ID) {
         await handleTxStatus(tx, successPool, expirePool, acalaHashExist);
       } else if (tx.crowdloanId === MOONBEAM_CROWDLOAN_ID) {
         await handleTxStatus(tx, successPool, expirePool, moonbeamHashExist);
       } else {
-        logger.error(`[SBH] invalid crowdloan id find: ${tx.crowdloanId}`);
+        logger.error(`[SBH] Invalid crowdloan id found: ${tx.crowdloanId}`);
       }
     }
 
-    let re = await conn
+    const succeedTasks = await connection
       .createQueryBuilder()
       .update(RewardDistributionTask)
-      .set({ status: 'Succeed' })
+      .set({ status: RewardDistributionTaskStatus.Succeed })
       .where({ txHash: In(successPool) })
       .execute();
-    if (re.affected < successPool.length) {
+    if (succeedTasks.affected < successPool.length) {
       logger.error(
-        `update success txes error: not all txex have been updated [${re.affected}/${successPool.length}]: %o`,
-        re
+        `Update txes to 'Succeed' status error: not all txes have been updated [${succeedTasks.affected}/${successPool.length}]: %o`,
+        succeedTasks
       );
     } else {
-      log.info(`update txes status to 'Successed' done, total ${successPool.length}`)
+      log.info(`Update txes status to 'Succeed' done, total ${successPool.length}`)
     }
 
-    re = await conn
+    const failedTasks = await connection
       .createQueryBuilder()
       .update(RewardDistributionTask)
-      .set({ status: 'Failed' })
+      .set({ status: RewardDistributionTaskStatus.Failed })
       .where({ txHash: In(expirePool) })
       .execute();
-    if (re.affected !== expirePool.length) {
+    if (failedTasks.affected !== expirePool.length) {
       logger.error(
-        `update expire txes error: not all txex have been updated [${re.affected}/${expirePool.length}]: %o`,
-        re
+        `Update txes to 'Failed' status error: not all txes have been updated [${failedTasks.affected}/${expirePool.length}]: %o`,
+        failedTasks
       );
     } else {
-      log.info(`update expire trasactions done, total ${expirePool.length}`)
+      log.info(`Update txes status to 'Failed' done, total ${expirePool.length}`)
     }
     await sleep(500);
   }

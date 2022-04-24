@@ -1,36 +1,31 @@
 import { DataSource } from 'typeorm';
-import { ClaimedReward } from './claimed-reward';
-import { RewardDistributionTask } from './reward-distribution-task';
-import { UserProjectRewardInfo } from './user-project-reward-info';
-import { LedgerRewardAddress } from './ledger-reward-address';
-import { MoonbeamRewardAddress } from './moonbeam_reward_address';
+import config from '../config';
 
-export * from './claimed-reward';
+import { RewardDistributionTask } from './reward-distribution-task';
+
 export * from './reward-distribution-task';
-export * from './user-project-reward-info';
-export * from './ledger-reward-address';
-export * from './moonbeam_reward_address';
+
+const { DATABASE_URL, NODE_ENV } = config();
 
 const sqliteDataSource = () =>
-new DataSource({
-  type: 'sqlite',
-  database: 'test.sqlite',
-  entities: [DotWithdrawTask],
-  synchronize: true,
-});
+  new DataSource({
+    type: 'sqlite',
+    database: 'test.sqlite',
+    entities: [RewardDistributionTask],
+    synchronize: true,
+  });
 
 const dataSource = () =>
-new DataSource({
-  type: 'postgres',
-  url: process.env.DB_CONNECTION_STRING,
-  entities: [DotWithdrawTask],
-});
+  new DataSource({
+    type: 'postgres',
+    url: DATABASE_URL,
+    entities: [RewardDistributionTask]
+  });
 
 let instance: DataSource;
 export const getDataSource = () => {
   if (!instance) {
-    instance =
-      config().NODE_ENV === 'production' ? dataSource() : sqliteDataSource();
+    instance = NODE_ENV === 'test' ? sqliteDataSource() : dataSource();
   }
   return instance;
 };
