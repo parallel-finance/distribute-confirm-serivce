@@ -10,8 +10,8 @@ env:
   VPC_ID: vpc-0bfc170f3fb6bb000
   NODE_ENV: prod
   EXPIRE_HOURS: 6
-  ACALA_SUBQL_ENDPOINT: https://api.subquery.network/sq/parallel-finance/acala-distribution-subql__cGFyY
-  MOONBEAM_SUBQL_ENDPOINT: https://api.subquery.network/sq/parallel-finance/moonbeam-distribution-subql__cGFyY
+  ACALA_SUBQL_ENDPOINT: https://api.subquery.network/sq/parallel-finance/acala-distribute-subql-staging
+  MOONBEAM_SUBQL_ENDPOINT: https://api.subquery.network/sq/parallel-finance/moonbeam-distribute-subql-staging
 
 jobs:
   depoly:
